@@ -4,7 +4,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GestureDetectorCompat;
 
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -13,9 +17,15 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Config;
@@ -40,6 +50,8 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
+
+import top.defaults.colorpicker.ColorPickerPopup;
 
 
 public class MainActivity extends AppCompatActivity implements GLSurfaceView.Renderer, GestureDetector.OnGestureListener,
@@ -72,6 +84,17 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     private BiquadFilter biquadFilter;
 
+    private FloatingActionButton fab_main, fab_color, fab_line;
+    private Animation fab_open, fab_close, fab_clock, fab_anticlock;
+    TextView color, thickness;
+
+    Boolean isOpen = false;
+
+    private SeekBar lineWidthBar;
+
+    private float lineWidthMax = 0.33f;
+    private LineShaderRenderer shaderRenderer = new LineShaderRenderer();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +104,8 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         Objects.requireNonNull(getSupportActionBar()).hide();
 
         surfaceView = findViewById(R.id.surfaceview);
+
+        final SharedPreferences sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
 
         displayRotationHelper = new DisplayRotationHelper(this);
         Matrix.setIdentityM(zeroMatrix, 0);
@@ -98,6 +123,110 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         detector.setOnDoubleTapListener(this);
         strokes = new ArrayList<>();
 
+        fab_main = findViewById(R.id.fab);
+        fab_color = findViewById(R.id.color);
+        fab_line = findViewById(R.id.line);
+        fab_close = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_close);
+        fab_open = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
+        fab_clock = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_rotate_clock);
+        fab_anticlock = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_rotate_anitclock);
+
+        color = findViewById(R.id.textview_color);
+        thickness = findViewById(R.id.textview_line_thickness);
+
+        fab_main.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (isOpen) {
+                    color.setVisibility(View.INVISIBLE);
+                    thickness.setVisibility(View.INVISIBLE);
+                    fab_line.startAnimation(fab_close);
+                    fab_color.startAnimation(fab_close);
+                    fab_main.startAnimation(fab_anticlock);
+                    fab_line.setClickable(false);
+                    fab_color.setClickable(false);
+                    isOpen = false;
+                } else {
+                    color.setVisibility(View.VISIBLE);
+                    thickness.setVisibility(View.VISIBLE);
+                    fab_line.startAnimation(fab_open);
+                    fab_color.startAnimation(fab_open);
+                    fab_main.startAnimation(fab_clock);
+                    fab_line.setClickable(true);
+                    fab_color.setClickable(true);
+                    isOpen = true;
+                }
+
+            }
+        });
+
+
+        fab_line.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Dialog dialog = new Dialog(MainActivity.this);
+                dialog.setContentView(R.layout.dialog_line_thickness);
+                dialog.show();
+
+                lineWidthBar = dialog.findViewById(R.id.lineWidth);
+
+                lineWidthBar.setProgress(sharedPreferences.getInt("mLineWidth", 10));
+
+                lineWidthMax = LineUtils.map((float) lineWidthBar.getProgress(), 0f, 100f, 0.1f, 5f, true);
+
+                SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+                    /**
+                     * Listen for seekbar changes, and update the settings
+                     */
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+                        if (seekBar == lineWidthBar) {
+                            editor.putInt("mLineWidth", progress);
+                            lineWidthMax = LineUtils.map((float) progress, 0f, 100f, 0.1f, 5f, true);
+                        }
+                        shaderRenderer.bNeedsUpdate.set(true);
+
+                        editor.apply();
+
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                    }
+                };
+
+                lineWidthBar.setOnSeekBarChangeListener(seekBarChangeListener);
+            }
+        });
+
+        fab_color.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new ColorPickerPopup.Builder(getBaseContext())
+                        .initialColor(Color.WHITE)
+                        .enableBrightness(true)
+                        .enableAlpha(true)
+                        .okTitle("Choose")
+                        .cancelTitle(null)
+                        .showIndicator(true)
+                        .showValue(false)
+                        .build()
+                        .show(view, new ColorPickerPopup.ColorPickerObserver() {
+                            @Override
+                            public void onColorPicked(int color) {
+                                Vector3f curColor = new Vector3f(Color.red(color)/255f,Color.green(color)/255f,Color.blue(color)/255f);
+                                Settings.setColor(curColor);
+                            }
+                        });
+            }
+        });
     }
 
 
