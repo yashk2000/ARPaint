@@ -2,6 +2,8 @@ package com.yashk2000.arpaint.Rendering;
 
 import android.opengl.Matrix;
 
+import com.yashk2000.arpaint.Utils.Settings;
+
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 
@@ -30,6 +32,7 @@ public class LineUtils {
 
     public static Vector3f GetWorldCoords(Vector2f touchPoint, float screenWidth, float screenHeight, float[] projectionMatrix, float[] viewMatrix) {
         Ray touchRay = projectRay(touchPoint, screenWidth, screenHeight, projectionMatrix, viewMatrix);
+        touchRay.direction.scale(Settings.getStrokeDrawDistance());
         touchRay.origin.add(touchRay.direction);
         return touchRay.origin;
     }
@@ -60,5 +63,16 @@ public class LineUtils {
         float[] viewProjMtx = new float[16];
         Matrix.multiplyMM(viewProjMtx, 0, projectionMatrix, 0, viewMatrix, 0);
         return screenPointToRay(touchPoint, new Vector2f(screenWidth, screenHeight), viewProjMtx);
+    }
+
+
+
+    public static boolean distanceCheck(Vector3f newPoint, Vector3f lastPoint) {
+        Vector3f temp = new Vector3f();
+        temp.sub(newPoint, lastPoint);
+        if (temp.length() > Settings.getMinDistance()) {
+            return true;
+        }
+        return false;
     }
 }
