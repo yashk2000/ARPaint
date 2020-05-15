@@ -2,7 +2,7 @@
 
 # ARPaint :paintbrush: 
 
-An android app which uses [Google ARCore](https://developers.google.com/ar) to allow user to paint on a camera feed.
+An android app which uses [Google ARCore](https://developers.google.com/ar) to allow user to paint on a camera feed. You can try out the app by downloading the APK from [here](https://github.com/yashk2000/ARPaint/blob/master/app/app-debug.apk) :rocket:.
 
 ## Features Implemented :fire: 
 
