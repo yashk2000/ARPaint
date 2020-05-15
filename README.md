@@ -48,7 +48,7 @@ Before you begin, you should have already downloaded the Android Studio SDK and 
 
 9. If the app was built successfully, you can test it by running it on either a real device or an emulated one by going to *Run > Run 'app'* or pressing the Run icon in the toolbar.
 
-## Leanring about ARCore :mortar_board:
+## Learning about ARCore :mortar_board:
 
 Here are a few resources you can use to learn about ARCore:
 
