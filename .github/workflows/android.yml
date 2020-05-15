@@ -17,5 +17,7 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - name: Install NDK
+      run: $ANDROID_HOME/tools/bin/sdkmanager "ndk;20.0.5594570" "cmake;3.10.2.4988404"
     - name: Build with Gradle
       run: ./gradlew build
