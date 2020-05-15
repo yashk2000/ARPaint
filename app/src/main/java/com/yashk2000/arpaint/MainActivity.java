@@ -84,9 +84,11 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     private BiquadFilter biquadFilter;
 
-    private FloatingActionButton fab_main, fab_color, fab_line;
+    private FloatingActionButton fab_main, fab_color, fab_line, fab_clear;
     private Animation fab_open, fab_close, fab_clock, fab_anticlock;
-    TextView color, thickness;
+    TextView color, thickness, clear;
+
+    private AtomicBoolean clearDrawing = new AtomicBoolean(false);
 
     Boolean isOpen = false;
 
@@ -126,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         fab_main = findViewById(R.id.fab);
         fab_color = findViewById(R.id.color);
         fab_line = findViewById(R.id.line);
+        fab_clear = findViewById(R.id.clear);
         fab_close = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_close);
         fab_open = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
         fab_clock = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_rotate_clock);
@@ -133,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
         color = findViewById(R.id.textview_color);
         thickness = findViewById(R.id.textview_line_thickness);
+        clear = findViewById(R.id.textview_clear);
 
         fab_main.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -141,18 +145,24 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
                 if (isOpen) {
                     color.setVisibility(View.INVISIBLE);
                     thickness.setVisibility(View.INVISIBLE);
+                    clear.setVisibility(View.INVISIBLE);
+                    fab_clear.startAnimation(fab_close);
                     fab_line.startAnimation(fab_close);
                     fab_color.startAnimation(fab_close);
                     fab_main.startAnimation(fab_anticlock);
+                    fab_clear.setClickable(false);
                     fab_line.setClickable(false);
                     fab_color.setClickable(false);
                     isOpen = false;
                 } else {
                     color.setVisibility(View.VISIBLE);
                     thickness.setVisibility(View.VISIBLE);
+                    clear.setVisibility(View.VISIBLE);
+                    fab_clear.startAnimation(fab_open);
                     fab_line.startAnimation(fab_open);
                     fab_color.startAnimation(fab_open);
                     fab_main.startAnimation(fab_clock);
+                    fab_clear.setClickable(true);
                     fab_line.setClickable(true);
                     fab_color.setClickable(true);
                     isOpen = true;
@@ -166,28 +176,25 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
             @Override
             public void onClick(View view) {
                 Dialog dialog = new Dialog(MainActivity.this);
-                dialog.setContentView(R.layout.dialog_line_thickness);
+                dialog.setContentView(R.layout.dialog_line);
                 dialog.show();
 
                 lineWidthBar = dialog.findViewById(R.id.lineWidth);
 
-                lineWidthBar.setProgress(sharedPreferences.getInt("mLineWidth", 10));
+                lineWidthBar.setProgress(sharedPreferences.getInt("LineWidth", 10));
 
                 lineWidthMax = LineUtils.map((float) lineWidthBar.getProgress(), 0f, 100f, 0.1f, 5f, true);
 
                 SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
-                    /**
-                     * Listen for seekbar changes, and update the settings
-                     */
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                         SharedPreferences.Editor editor = sharedPreferences.edit();
 
                         if (seekBar == lineWidthBar) {
-                            editor.putInt("mLineWidth", progress);
+                            editor.putInt("LineWidth", progress);
                             lineWidthMax = LineUtils.map((float) progress, 0f, 100f, 0.1f, 5f, true);
                         }
-                        shaderRenderer.bNeedsUpdate.set(true);
+                        lineShaderRenderer.bNeedsUpdate.set(true);
 
                         editor.apply();
 
@@ -221,10 +228,17 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
                         .show(view, new ColorPickerPopup.ColorPickerObserver() {
                             @Override
                             public void onColorPicked(int color) {
-                                Vector3f curColor = new Vector3f(Color.red(color)/255f,Color.green(color)/255f,Color.blue(color)/255f);
+                                Vector3f curColor = new Vector3f(Color.red(color) / 255f, Color.green(color) / 255f, Color.blue(color) / 255f);
                                 Settings.setColor(curColor);
                             }
                         });
+            }
+        });
+
+        fab_clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                clearDrawing.set(true);
             }
         });
     }
@@ -290,54 +304,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         screenWidth = displayMetrics.widthPixels;
     }
 
-    @Override
-    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        if (session == null) {
-            return;
-        }
-
-        GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-
-        backgroundRenderer.createOnGlThread(this);
-
-        try {
-
-            session.setCameraTextureName(backgroundRenderer.getTextureId());
-            lineShaderRenderer.createOnGlThread(this);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onSurfaceChanged(GL10 gl, int width, int height) {
-        GLES20.glViewport(0, 0, width, height);
-        displayRotationHelper.onSurfaceChanged(width, height);
-        screenWidth = width;
-        screenHeight = height;
-    }
-
-    @Override
-    public void onDrawFrame(GL10 gl) {
-        if (paused) return;
-
-        update();
-
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-
-        if (frame == null) {
-            return;
-        }
-
-        backgroundRenderer.draw(frame);
-
-        if (frame.getCamera().getTrackingState() == TrackingState.TRACKING) {
-            lineShaderRenderer.draw(viewmtx, projmtx, screenWidth, screenHeight, Settings.getNearClip(), Settings.getFarClip());
-        }
-    }
-
-
     private void update() {
 
         if (session == null) {
@@ -395,6 +361,12 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
                 zeroMatrix = getCalibrationMatrix();
             }
 
+            if (clearDrawing.get()) {
+                clearDrawing.set(false);
+                clearScreen();
+                lineShaderRenderer.bNeedsUpdate.set(true);
+            }
+
             lineShaderRenderer.setDrawDebug(lineParameters.get());
             if (lineShaderRenderer.bNeedsUpdate.get()) {
                 lineShaderRenderer.setColor(Settings.getColor());
@@ -414,19 +386,9 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         }
     }
 
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (!PermissionsHelper.hasCameraPermission(this)) {
-            Toast.makeText(this,
-                    "Camera permission is needed to run this application", Toast.LENGTH_LONG).show();
-        }
-
-    }
-
-    private void addStroke(Vector2f touchPoint) {
-        Vector3f newPoint = LineUtils.GetWorldCoords(touchPoint, screenWidth, screenHeight, projmtx, viewmtx);
-        addStroke(newPoint);
+    public void clearScreen() {
+        strokes.clear();
+        lineShaderRenderer.clear();
     }
 
     private void addPoint(Vector2f touchPoint) {
@@ -470,6 +432,11 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         Matrix.translateM(m, 0, t[0], t[1], t[2]);
         Matrix.rotateM(m, 0, (float) Math.toDegrees(rotate), 0, 1, 0);
         return m;
+    }
+
+    private void addStroke(Vector2f touchPoint) {
+        Vector3f newPoint = LineUtils.GetWorldCoords(touchPoint, screenWidth, screenHeight, projmtx, viewmtx);
+        addStroke(newPoint);
     }
 
     @Override
@@ -546,5 +513,61 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         return false;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (!PermissionsHelper.hasCameraPermission(this)) {
+            Toast.makeText(this,
+                    "Camera permission is needed", Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+    @Override
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        if (session == null) {
+            return;
+        }
+
+        GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+        backgroundRenderer.createOnGlThread(this);
+
+        try {
+
+            session.setCameraTextureName(backgroundRenderer.getTextureId());
+            lineShaderRenderer.createOnGlThread(this);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
+        GLES20.glViewport(0, 0, width, height);
+        displayRotationHelper.onSurfaceChanged(width, height);
+        screenWidth = width;
+        screenHeight = height;
+    }
+
+    @Override
+    public void onDrawFrame(GL10 gl) {
+        if (paused) return;
+
+        update();
+
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+
+        if (frame == null) {
+            return;
+        }
+
+        backgroundRenderer.draw(frame);
+
+        if (frame.getCamera().getTrackingState() == TrackingState.TRACKING) {
+            lineShaderRenderer.draw(viewmtx, projmtx, screenWidth, screenHeight, Settings.getNearClip(), Settings.getFarClip());
+        }
     }
 }
