@@ -95,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private SeekBar lineWidthBar;
 
     private float lineWidthMax = 0.33f;
-    private LineShaderRenderer shaderRenderer = new LineShaderRenderer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -373,7 +372,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
                 lineShaderRenderer.mDrawDistance = Settings.getStrokeDrawDistance();
                 float distanceScale = 0.0f;
                 lineShaderRenderer.setDistanceScale(distanceScale);
-                float lineWidthMax = 0.33f;
                 lineShaderRenderer.setLineWidth(lineWidthMax);
                 lineShaderRenderer.clear();
                 lineShaderRenderer.updateStrokes(strokes);

@@ -1,9 +1,7 @@
 package com.yashk2000.arpaint.Rendering;
 
 import android.content.Context;
-import android.opengl.EGLConfig;
 import android.opengl.GLES20;
-import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
 
@@ -16,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.microedition.khronos.opengles.GL10;
 import javax.vecmath.Vector3f;
 
 /**

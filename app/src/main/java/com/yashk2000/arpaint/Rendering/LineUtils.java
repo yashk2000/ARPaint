@@ -38,7 +38,7 @@ public class LineUtils {
     }
 
 
-    public static Ray screenPointToRay(Vector2f point, Vector2f viewportSize, float[] viewProjMtx) {
+    private static Ray screenPointToRay(Vector2f point, Vector2f viewportSize, float[] viewProjMtx) {
         point.y = viewportSize.y - point.y;
         float x = point.x * 2.0F / viewportSize.x - 1.0F;
         float y = point.y * 2.0F / viewportSize.y - 1.0F;
@@ -59,7 +59,7 @@ public class LineUtils {
     }
 
 
-    public static Ray projectRay(Vector2f touchPoint, float screenWidth, float screenHeight, float[] projectionMatrix, float[] viewMatrix) {
+    private static Ray projectRay(Vector2f touchPoint, float screenWidth, float screenHeight, float[] projectionMatrix, float[] viewMatrix) {
         float[] viewProjMtx = new float[16];
         Matrix.multiplyMM(viewProjMtx, 0, projectionMatrix, 0, viewMatrix, 0);
         return screenPointToRay(touchPoint, new Vector2f(screenWidth, screenHeight), viewProjMtx);
@@ -70,9 +70,6 @@ public class LineUtils {
     public static boolean distanceCheck(Vector3f newPoint, Vector3f lastPoint) {
         Vector3f temp = new Vector3f();
         temp.sub(newPoint, lastPoint);
-        if (temp.length() > Settings.getMinDistance()) {
-            return true;
-        }
-        return false;
+        return temp.length() > Settings.getMinDistance();
     }
 }
