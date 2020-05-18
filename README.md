@@ -10,6 +10,7 @@ An android app which uses [Google ARCore](https://developers.google.com/ar) to a
 - Change line thickness :straight_ruler: 
 - Change line color :art: 
 - Clear the entire screen :pencil2:
+- Undo last move :arrow_backward:
 
 ## Screenshots :bar_chart: 
 
