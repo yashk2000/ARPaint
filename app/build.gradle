@@ -1,4 +1,29 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.dicedmelon.gradle:jacoco-android:0.1.4'
+    }
+}
+
+plugins {
+    id "com.diffplug.gradle.spotless" version "4.0.0"
+}
+
 apply plugin: 'com.android.application'
+apply plugin: 'jacoco-android'
+
+jacoco {
+    toolVersion = "0.8.4"
+}
+
+spotless {
+    java {
+        googleJavaFormat()
+        target '**/*.java'
+    }
+}
 
 android {
     compileSdkVersion 29

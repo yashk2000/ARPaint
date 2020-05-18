@@ -7,17 +7,16 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 public class PermissionsHelper {
-    private static final String CAMERA_PERMISSION = Manifest.permission.CAMERA;
-    private static final int CAMERA_PERMISSION_CODE = 5;
+  private static final String CAMERA_PERMISSION = Manifest.permission.CAMERA;
+  private static final int CAMERA_PERMISSION_CODE = 5;
 
-    public static boolean hasCameraPermission(Activity activity) {
-        return ContextCompat.checkSelfPermission(activity, CAMERA_PERMISSION) ==
-                PackageManager.PERMISSION_GRANTED;
+  public static boolean hasCameraPermission(Activity activity) {
+    return ContextCompat.checkSelfPermission(activity, CAMERA_PERMISSION)
+        == PackageManager.PERMISSION_GRANTED;
+  }
 
-    }
-
-    public static void requestCameraPermission(Activity activity) {
-        ActivityCompat.requestPermissions(activity, new String[]{CAMERA_PERMISSION},
-                CAMERA_PERMISSION_CODE);
-    }
+  public static void requestCameraPermission(Activity activity) {
+    ActivityCompat.requestPermissions(
+        activity, new String[] {CAMERA_PERMISSION}, CAMERA_PERMISSION_CODE);
+  }
 }
