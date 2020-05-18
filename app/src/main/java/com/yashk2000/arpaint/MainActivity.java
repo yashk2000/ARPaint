@@ -84,11 +84,12 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     private BiquadFilter biquadFilter;
 
-    private FloatingActionButton fab_main, fab_color, fab_line, fab_clear;
+    private FloatingActionButton fab_main, fab_color, fab_line, fab_clear, fab_undo;
     private Animation fab_open, fab_close, fab_clock, fab_anticlock;
-    TextView color, thickness, clear;
+    TextView color, thickness, clear, undo;
 
     private AtomicBoolean clearDrawing = new AtomicBoolean(false);
+    private AtomicBoolean undoMove = new AtomicBoolean(false);
 
     Boolean isOpen = false;
 
@@ -128,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         fab_color = findViewById(R.id.color);
         fab_line = findViewById(R.id.line);
         fab_clear = findViewById(R.id.clear);
+        fab_undo = findViewById(R.id.undo);
         fab_close = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_close);
         fab_open = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
         fab_clock = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_rotate_clock);
@@ -136,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         color = findViewById(R.id.textview_color);
         thickness = findViewById(R.id.textview_line_thickness);
         clear = findViewById(R.id.textview_clear);
+        undo = findViewById(R.id.textview_undo);
 
         fab_main.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -145,25 +148,31 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
                     color.setVisibility(View.INVISIBLE);
                     thickness.setVisibility(View.INVISIBLE);
                     clear.setVisibility(View.INVISIBLE);
+                    undo.setVisibility(View.INVISIBLE);
                     fab_clear.startAnimation(fab_close);
+                    fab_undo.startAnimation(fab_close);
                     fab_line.startAnimation(fab_close);
                     fab_color.startAnimation(fab_close);
                     fab_main.startAnimation(fab_anticlock);
                     fab_clear.setClickable(false);
                     fab_line.setClickable(false);
                     fab_color.setClickable(false);
+                    fab_undo.setClickable(false);
                     isOpen = false;
                 } else {
                     color.setVisibility(View.VISIBLE);
                     thickness.setVisibility(View.VISIBLE);
                     clear.setVisibility(View.VISIBLE);
+                    undo.setVisibility(View.VISIBLE);
                     fab_clear.startAnimation(fab_open);
+                    fab_undo.startAnimation(fab_open);
                     fab_line.startAnimation(fab_open);
                     fab_color.startAnimation(fab_open);
                     fab_main.startAnimation(fab_clock);
                     fab_clear.setClickable(true);
                     fab_line.setClickable(true);
                     fab_color.setClickable(true);
+                    fab_undo.setClickable(true);
                     isOpen = true;
                 }
 
@@ -238,6 +247,13 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
             @Override
             public void onClick(View view) {
                 clearDrawing.set(true);
+            }
+        });
+
+        fab_undo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                undoMove.set(true);
             }
         });
     }
@@ -358,6 +374,14 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
             if (reCenterView.get()) {
                 reCenterView.set(false);
                 zeroMatrix = getCalibrationMatrix();
+            }
+
+            if (undoMove.get()) {
+                undoMove.set(false);
+                if (strokes.size() > 0) {
+                    strokes.remove(strokes.size() - 1);
+                    lineShaderRenderer.bNeedsUpdate.set(true);
+                }
             }
 
             if (clearDrawing.get()) {
