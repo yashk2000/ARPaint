@@ -15,12 +15,12 @@ An android app which uses [Google ARCore](https://developers.google.com/ar) to a
 ## Screenshots :bar_chart: 
 
 <p float="left">
-  <img src="https://user-images.githubusercontent.com/41234408/82045593-f9ffb100-96cc-11ea-82c2-d15c2e7d8d2a.png" width="288" />
-  <img src="https://user-images.githubusercontent.com/41234408/82045663-17cd1600-96cd-11ea-9e47-57a59aaf2d62.png" width="288" /> 
-  <img src="https://user-images.githubusercontent.com/41234408/82045729-36331180-96cd-11ea-9768-0be3bc326183.png" width="288" />
-   <img src="https://user-images.githubusercontent.com/41234408/82045795-52cf4980-96cd-11ea-951b-fa34967cc7be.png" width="288" />
-  <img src="https://user-images.githubusercontent.com/41234408/82045957-9b870280-96cd-11ea-906b-ae3ad71a88cb.png" width="288" /> 
-  <img src="https://user-images.githubusercontent.com/41234408/82046031-c6715680-96cd-11ea-9b16-378adedaebb1.png" width="288" />
+  <img src="https://user-images.githubusercontent.com/41234408/82045593-f9ffb100-96cc-11ea-82c2-d15c2e7d8d2a.png" width="250" />
+  <img src="https://user-images.githubusercontent.com/41234408/82045663-17cd1600-96cd-11ea-9e47-57a59aaf2d62.png" width="250" /> 
+  <img src="https://user-images.githubusercontent.com/41234408/82045729-36331180-96cd-11ea-9768-0be3bc326183.png" width="250" />
+   <img src="https://user-images.githubusercontent.com/41234408/82045795-52cf4980-96cd-11ea-951b-fa34967cc7be.png" width="250" />
+  <img src="https://user-images.githubusercontent.com/41234408/82045957-9b870280-96cd-11ea-906b-ae3ad71a88cb.png" width="250" /> 
+  <img src="https://user-images.githubusercontent.com/41234408/82046031-c6715680-96cd-11ea-9b16-378adedaebb1.png" width="250" />
 </p>
 
 ***Disclaimer: Do not mind the drawings in the screenshots, I'm not good at drawing.***
